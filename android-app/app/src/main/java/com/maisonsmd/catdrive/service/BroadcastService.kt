@@ -214,8 +214,8 @@ class BleService : Service(), LocationListener {
                 // successfully connected to the GATT Server
                 // Attempts to discover services after successful connection.
                 Timber.i("onConnectionStateChange: Connected! ${mDevice}, ${mBluetoothGatt}")
-                mBluetoothGatt?.discoverServices()
                 mConnectionState = BluetoothProfile.STATE_CONNECTING
+                gatt?.requestMtu(517)
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 // disconnected from the GATT Server
                 // broadcastUpdate(ACTION_GATT_DISCONNECTED)
@@ -234,6 +234,12 @@ class BleService : Service(), LocationListener {
                     }
                 )
             }
+        }
+
+        override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
+            super.onMtuChanged(gatt, mtu, status)
+            gatt?.discoverServices()
+            mConnectionState = BluetoothProfile.STATE_CONNECTING
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
@@ -342,7 +348,6 @@ class BleService : Service(), LocationListener {
         mBluetoothGatt =
             device.connectGatt(this, false, gattCallback, BluetoothDevice.TRANSPORT_LE).also {
                 it.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
-                it.requestMtu(240)
             }
     }
 
